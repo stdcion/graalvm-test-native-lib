@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <artifactId>graalvm-test-native-lib</artifactId>
+    <groupId>com.dxfeed</groupId>
+    <version>1.0.0</version>
+    <modelVersion>4.0.0</modelVersion>
+
+    <properties>
+        <!-- Common -->
+        <graalvm.version>22.1.0</graalvm.version>
+        <graalvm.maven.version>21.2.0</graalvm.maven.version>
+        <native.image.path>native-image</native.image.path>
+        <graal.compiler.log.file>${project.basedir}/target/graal_compiler.log</graal.compiler.log.file>
+        <java.main.class>com.dxfeed.NativeTestMain</java.main.class>
+        <native.image.name>GraalvmTestNative</native.image.name>
+
+        <!-- Are overridden by profiles -->
+        <temp.dir/>
+        <cap.cache.dir/>
+        <graavm.capcache>
+            -H:+UseCAPCache
+            -H:CAPCacheDir=${cap.cache.dir}
+        </graavm.capcache>
+
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+
+        <!-- NativeImage options links: -->
+        <!-- 1. https://www.graalvm.org/22.1/reference-manual/native-image/Options/ -->
+        <!-- 2. https://chriswhocodes.com/graalvm_native_image_ce_jdk11_options.html -->
+        <!-- 3. Unofficial: https://gist.github.com/happylynx/ce642816411ee5c98f04fedd80f4c417 -->
+        <native.image.common.options>
+            <!-- build a standalone native executable or report a failure -->
+            --no-fallback
+            <!-- show native toolchain information and native executable’s build settings -->
+            --native-image-info
+            <!-- to allow using jdk.unsupported.sun.misc.Unsafe -->
+            --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED
+            <!-- To build native-image as shared library -->
+            -H:+SharedLibrary
+            <!--Exit the image builder VM after printing call stacks -->
+            -H:-DeadlockWatchdogExitOnTimeout
+            <!-- The interval in minutes between watchdog checks (0 disables the watchdog) -->
+            -H:DeadlockWatchdogInterval=0
+            <!-- Show exception stack traces for exceptions during image building. -->
+            -H:+ReportExceptionStackTraces
+            <!-- target/tempDirectory for temporary files -->
+            -H:TempDirectory=${temp.dir}
+            <!-- Args for generating C Annotation Processor caches -->
+            ${graavm.capcache}
+            <!-- To show graal configuration -->
+            -Dgraal.ShowConfiguration=verbose
+            <!-- Log file -->
+            -Dgraal.LogFile=${graal.compiler.log.file}
+            <!-- Target native-image path -->
+            -H:Path=${native.image.path}
+            <!-- Java class that contains public static void main() method -->
+            -H:Class=${java.main.class}
+            <!-- Result native-image name -->
+            -H:Name=${native.image.name}
+        </native.image.common.options>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.graalvm.sdk</groupId>
+            <artifactId>graal-sdk</artifactId>
+            <version>${graalvm.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>svm</artifactId>
+            <version>${graalvm.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Compile at Java 1.8 level -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                    <encoding>UTF-8</encoding>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
+                    <compilerVersion>11</compilerVersion>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>gen-cap-cache</id>
+            <properties>
+                <!-- <c.library.path>${project.basedir}/native/graal/</c.library.path> -->
+                <graavm.capcache>
+                    -H:-UseCAPCache
+                    -H:+NewCAPCache
+                    -H:-CheckToolchain
+                    -H:CAPCacheDir=${project.basedir}/newCapCacheDir
+                    <!-- -H:CLibraryPath=${c.library.path}-->
+                </graavm.capcache>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>graal-win</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <cap.cache.dir>${project.basedir}/capcache-win</cap.cache.dir>
+                <temp.dir>tmp-windows</temp.dir>
+                <!-- <msvc.compiler.dir>c:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.31.31103\</msvc.compiler.dir> -->
+                <!-- <windows.sdk.dir>c:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\</windows.sdk.dir> -->
+                <!-- <msvc.compiler.args>-->
+                <!--     &#45;&#45;native-compiler-path="${msvc.compiler.dir}\bin\HostX64\x64\cl.exe" -->
+                <!--     -H:CLibraryPath="${windows.sdk.dir}\um\x64" -->
+                <!--     -H:CLibraryPath="${windows.sdk.dir}\ucrt\x64" -->
+                <!--     -H:CLibraryPath="${msvc.compiler.dir}\lib\onecore\x64" -->
+                <!-- </msvc.compiler.args> -->
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>delete-old-SVM</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>compile</phase>
+                                <configuration>
+                                    <executable>${project.basedir}/deleteOldSvm.cmd</executable>
+                                    <arguments>
+                                        <argument>${project.build.directory}\${temp.dir}</argument>
+                                        <argument>${project.build.directory}\${native.image.path}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.nativeimage</groupId>
+                        <artifactId>native-image-maven-plugin</artifactId>
+                        <version>${graalvm.maven.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>native-image</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>false</skip>
+                            <buildArgs>
+                                ${native.image.common.options}
+                                <!-- Temp to fix "unresolved external symbol" link error -->
+                                -H:NativeLinkerOption="/FORCE:UNRESOLVED"
+                                <!-- ${msvc.compiler.args} -->
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.coderplus.maven.plugins</groupId>
+                        <artifactId>copy-rename-maven-plugin</artifactId>
+                        <version>1.0</version>
+                        <executions>
+                            <execution>
+                                <id>copy-cmake-file</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceFile>
+                                        ${project.basedir}/src/CMakeLists.txt
+                                    </sourceFile>
+                                    <destinationFile>
+                                        ${project.build.directory}/${native.image.path}/CMakeLists.txt
+                                    </destinationFile>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>graal-mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <cap.cache.dir>${project.basedir}/capcache-mac</cap.cache.dir>
+                <temp.dir>tmp-macos</temp.dir>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>delete-old-SVM</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>compile</phase>
+                                <configuration>
+                                    <executable>/bin/rm</executable>
+                                    <arguments>
+                                        <argument>-rf</argument>
+                                        <argument>${project.build.directory}/${temp.dir}</argument>
+                                        <argument>${project.build.directory}/${native.image.path}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.nativeimage</groupId>
+                        <artifactId>native-image-maven-plugin</artifactId>
+                        <version>${graalvm.maven.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>native-image</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>false</skip>
+                            <buildArgs>${native.image.common.options}</buildArgs>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.coderplus.maven.plugins</groupId>
+                        <artifactId>copy-rename-maven-plugin</artifactId>
+                        <version>1.0</version>
+                        <executions>
+                            <execution>
+                                <id>rename-output-lib</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>rename</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceFile>
+                                        ${project.build.directory}/${native.image.path}/${native.image.name}.dylib
+                                    </sourceFile>
+                                    <destinationFile>
+                                        ${project.build.directory}/${native.image.path}/lib${native.image.name}.dylib
+                                    </destinationFile>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>copy-cmake-file</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceFile>
+                                        ${project.basedir}/src/CMakeLists.txt
+                                    </sourceFile>
+                                    <destinationFile>
+                                        ${project.build.directory}/${native.image.path}/CMakeLists.txt
+                                    </destinationFile>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>macos-aarch64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <cap.cache.dir>${project.basedir}/capcache-mac-arm64</cap.cache.dir>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>graal-linux</id>
+            <activation>
+                <os>
+                    <family>linux</family>
+                </os>
+            </activation>
+            <properties>
+                <cap.cache.dir>${project.basedir}/capcache-linux</cap.cache.dir>
+                <temp.dir>tmp-linux</temp.dir>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>delete-old-SVM</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>compile</phase>
+                                <configuration>
+                                    <executable>/bin/rm</executable>
+                                    <arguments>
+                                        <argument>-rf</argument>
+                                        <argument>${project.build.directory}/${temp.dir}</argument>
+                                        <argument>${project.build.directory}/${native.image.path}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.nativeimage</groupId>
+                        <artifactId>native-image-maven-plugin</artifactId>
+                        <version>${graalvm.maven.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>native-image</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>false</skip>
+                            <buildArgs>
+                                ${native.image.common.options}
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.coderplus.maven.plugins</groupId>
+                        <artifactId>copy-rename-maven-plugin</artifactId>
+                        <version>1.0</version>
+                        <executions>
+                            <execution>
+                                <id>rename-output-lib</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>rename</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceFile>
+                                        ${project.build.directory}/${native.image.path}/${native.image.name}.so
+                                    </sourceFile>
+                                    <destinationFile>
+                                        ${project.build.directory}/${native.image.path}/lib${native.image.name}.so
+                                    </destinationFile>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>copy-cmake-file</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceFile>
+                                        ${project.basedir}/src/CMakeLists.txt
+                                    </sourceFile>
+                                    <destinationFile>
+                                        ${project.build.directory}/${native.image.path}/CMakeLists.txt
+                                    </destinationFile>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

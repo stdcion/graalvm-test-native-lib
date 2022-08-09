@@ -1,0 +1,43 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.1.0'
+          java-version: '11'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Install
+        run: |
+          mvn clean install
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: graalvm-test-native-lib-${{ matrix.os }}
+          path: |
+            target/native-image
+
+# ToDo: Not actually work.
+#      - name: Release
+#        if: startsWith(github.event.ref, 'refs/tags/v')
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          files: target/native-image/*
+#          token: ${{ secrets.GITHUB_TOKEN }}
