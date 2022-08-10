@@ -291,6 +291,29 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>set-rpath</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>install</phase>
+                                <configuration>
+                                    <executable>install_name_tool</executable>
+                                    <arguments>
+                                        <argument>-id</argument>
+                                        <argument>@rpath/lib${native.image.name}.dylib</argument>
+                                        <argument>
+                                            ${project.build.directory}/${native.image.path}/lib${native.image.name}.dylib
+                                        </argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
