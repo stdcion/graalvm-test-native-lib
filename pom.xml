@@ -329,7 +329,8 @@
             <id>graal-linux</id>
             <activation>
                 <os>
-                    <family>linux</family>
+                    <family>unix</family>
+                    <name>Linux</name>
                 </os>
             </activation>
             <properties>
