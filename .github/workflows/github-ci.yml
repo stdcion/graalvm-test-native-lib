@@ -2,42 +2,59 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
+    tags:
+      - "v*"
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
+    name: Build on ${{ matrix.OS_NAME }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest, self-hosted ]
+        include:
+          - os: ubuntu-latest
+            OS_NAME: linux
+          - os: windows-latest
+            OS_NAME: windows
+          - os: macos-latest
+            OS_NAME: macos-x86-64
+          - os: [self-hosted, macOS, ARM64]
+            OS_NAME: macos-arm64
 
     steps:
       - uses: actions/checkout@v3
       - uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.1.0'
-          java-version: '11'
-          components: 'native-image'
+          version: "22.1.0"
+          java-version: "11"
+          components: "native-image"
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Install
         run: |
           mvn clean install
 
-      - name: Upload binary
+      - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: graalvm-test-native-lib-${{ matrix.os }}
+          name: graalvm-test-native-lib-${{ matrix.OS_NAME }}
           path: |
             target/native-image
 
-# ToDo: Not actually work.
-#      - name: Release
-#        if: startsWith(github.event.ref, 'refs/tags/v')
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          files: target/native-image/*
-#          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release archive
+        if: startsWith(github.event.ref, 'refs/tags/v')
+        uses: thedoctor0/zip-release@main
+        with:
+          type: "zip"
+          filename: "graalvm-test-native-lib-${{ matrix.OS_NAME }}.zip"
+          directory: target/native-image
+
+      - name: Release
+        if: startsWith(github.event.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/native-image/graalvm-test-native-lib-${{ matrix.OS_NAME }}.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
