@@ -188,12 +188,24 @@
                                     <goal>copy</goal>
                                 </goals>
                                 <configuration>
-                                    <sourceFile>
-                                        ${project.basedir}/src/CMakeLists.txt
-                                    </sourceFile>
-                                    <destinationFile>
-                                        ${project.build.directory}/${native.image.path}/CMakeLists.txt
-                                    </destinationFile>
+                                    <fileSets>
+                                        <fileSet>
+                                            <sourceFile>
+                                                ${project.basedir}/native/CMakeLists.txt
+                                            </sourceFile>
+                                            <destinationFile>
+                                                ${project.build.directory}/${native.image.path}/CMakeLists.txt
+                                            </destinationFile>
+                                        </fileSet>
+                                        <fileSet>
+                                            <sourceFile>
+                                                ${project.basedir}/native/dxf_types.h
+                                            </sourceFile>
+                                            <destinationFile>
+                                                ${project.build.directory}/${native.image.path}/dxf_types.h
+                                            </destinationFile>
+                                        </fileSet>
+                                    </fileSets>
                                 </configuration>
                             </execution>
                         </executions>
@@ -298,12 +310,24 @@
                                     <goal>copy</goal>
                                 </goals>
                                 <configuration>
-                                    <sourceFile>
-                                        ${project.basedir}/src/CMakeLists.txt
-                                    </sourceFile>
-                                    <destinationFile>
-                                        ${project.build.directory}/${native.image.path}/CMakeLists.txt
-                                    </destinationFile>
+                                    <fileSets>
+                                        <fileSet>
+                                            <sourceFile>
+                                                ${project.basedir}/native/CMakeLists.txt
+                                            </sourceFile>
+                                            <destinationFile>
+                                                ${project.build.directory}/${native.image.path}/CMakeLists.txt
+                                            </destinationFile>
+                                        </fileSet>
+                                        <fileSet>
+                                            <sourceFile>
+                                                ${project.basedir}/native/dxf_types.h
+                                            </sourceFile>
+                                            <destinationFile>
+                                                ${project.build.directory}/${native.image.path}/dxf_types.h
+                                            </destinationFile>
+                                        </fileSet>
+                                    </fileSets>
                                 </configuration>
                             </execution>
                         </executions>
@@ -407,12 +431,24 @@
                                     <goal>copy</goal>
                                 </goals>
                                 <configuration>
-                                    <sourceFile>
-                                        ${project.basedir}/src/CMakeLists.txt
-                                    </sourceFile>
-                                    <destinationFile>
-                                        ${project.build.directory}/${native.image.path}/CMakeLists.txt
-                                    </destinationFile>
+                                    <fileSets>
+                                        <fileSet>
+                                            <sourceFile>
+                                                ${project.basedir}/native/CMakeLists.txt
+                                            </sourceFile>
+                                            <destinationFile>
+                                                ${project.build.directory}/${native.image.path}/CMakeLists.txt
+                                            </destinationFile>
+                                        </fileSet>
+                                        <fileSet>
+                                            <sourceFile>
+                                                ${project.basedir}/native/dxf_types.h
+                                            </sourceFile>
+                                            <destinationFile>
+                                                ${project.build.directory}/${native.image.path}/dxf_types.h
+                                            </destinationFile>
+                                        </fileSet>
+                                    </fileSets>
                                 </configuration>
                             </execution>
                         </executions>
