@@ -205,6 +205,14 @@
                                                 ${project.build.directory}/${native.image.path}/dxf_types.h
                                             </destinationFile>
                                         </fileSet>
+                                        <fileSet>
+                                            <sourceFile>
+                                                ${project.basedir}/native/graalvm_test_native.h
+                                            </sourceFile>
+                                            <destinationFile>
+                                                ${project.build.directory}/${native.image.path}/graalvm_test_native.h
+                                            </destinationFile>
+                                        </fileSet>
                                     </fileSets>
                                 </configuration>
                             </execution>
@@ -327,6 +335,14 @@
                                                 ${project.build.directory}/${native.image.path}/dxf_types.h
                                             </destinationFile>
                                         </fileSet>
+                                        <fileSet>
+                                            <sourceFile>
+                                                ${project.basedir}/native/graalvm_test_native.h
+                                            </sourceFile>
+                                            <destinationFile>
+                                                ${project.build.directory}/${native.image.path}/graalvm_test_native.h
+                                            </destinationFile>
+                                        </fileSet>
                                     </fileSets>
                                 </configuration>
                             </execution>
@@ -446,6 +462,14 @@
                                             </sourceFile>
                                             <destinationFile>
                                                 ${project.build.directory}/${native.image.path}/dxf_types.h
+                                            </destinationFile>
+                                        </fileSet>
+                                        <fileSet>
+                                            <sourceFile>
+                                                ${project.basedir}/native/graalvm_test_native.h
+                                            </sourceFile>
+                                            <destinationFile>
+                                                ${project.build.directory}/${native.image.path}/graalvm_test_native.h
                                             </destinationFile>
                                         </fileSet>
                                     </fileSets>
