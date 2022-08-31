@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+#include "dxf_types.h"
+
 int run_main(int argc, char** argv);
 
 graal_isolatethread_t* native_test_api_create_isolate();

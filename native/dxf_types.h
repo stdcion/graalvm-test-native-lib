@@ -76,11 +76,11 @@ typedef void (*dxf_endpoint_on_changing_state)(dxf_endpoint_state_t oldState, dx
 /**
  * @brief List of market events.
  */
-typedef enum dxf_market_events_t {
-  DXF_MARKET_EVENTS_QUOTE,
-  DXF_MARKET_EVENTS_TIME_AND_SALE,
-  DXF_MARKET_EVENTS_CANDLES,
-} dxf_market_events_t;
+typedef enum dxf_event_type_t {
+  DXF_EVENT_TYPE_QUOTE,
+  DXF_EVENT_TYPE_TIME_AND_SALE,
+  DXF_EVENT_TYPE_CANDLES,
+} dxf_event_type_t;
 
 /**
  * @brief Base event type.

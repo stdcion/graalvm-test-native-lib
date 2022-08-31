@@ -33,10 +33,11 @@ public class NativeTestApi {
     }
 
 
-    @CEnum("dxf_market_events_t")
+    @CEnum("dxf_event_type_t")
     enum EventsTypes {
-        DXF_MARKET_EVENTS_QUOTE,
-        DXF_MARKET_EVENTS_TIME_AND_SALE;
+        DXF_EVENT_TYPE_QUOTE,
+        DXF_EVENT_TYPE_TIME_AND_SALE,
+        DXF_EVENT_TYPE_CANDLES;
 
         @CEnumValue
         public native int getCValue();
@@ -129,14 +130,14 @@ public class NativeTestApi {
 
         // Allocates Quote events.
         var quote = (QuoteNative) UnmanagedMemory.calloc(SizeOf.get(QuoteNative.class));
-        quote.setEventType(EventsTypes.DXF_MARKET_EVENTS_QUOTE.getCValue());
+        quote.setEventType(EventsTypes.DXF_EVENT_TYPE_QUOTE.getCValue());
         quote.setSymbolName(allocCString("😁"));
         quote.setAskPrice(1);
         quote.setBidPrice(2);
 
         // Allocates Quote events.
         var tns = (TimeAndSaleNative) UnmanagedMemory.calloc(SizeOf.get(TimeAndSaleNative.class));
-        tns.setEventType(EventsTypes.DXF_MARKET_EVENTS_TIME_AND_SALE.getCValue());
+        tns.setEventType(EventsTypes.DXF_EVENT_TYPE_TIME_AND_SALE.getCValue());
         tns.setSymbolName(allocCString("ETH/USD:GDAX"));
         tns.setEventFlag(3);
         tns.setIndex(4);
