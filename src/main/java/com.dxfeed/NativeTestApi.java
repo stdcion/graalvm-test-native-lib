@@ -135,7 +135,7 @@ public class NativeTestApi {
         quote.setAskPrice(1);
         quote.setBidPrice(2);
 
-        // Allocates Quote events.
+        // Allocates TnS events.
         var tns = (TimeAndSaleNative) UnmanagedMemory.calloc(SizeOf.get(TimeAndSaleNative.class));
         tns.setEventType(EventsTypes.DXF_EVENT_TYPE_TIME_AND_SALE.getCValue());
         tns.setSymbolName(allocCString("ETH/USD:GDAX"));
