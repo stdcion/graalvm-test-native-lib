@@ -33,10 +33,10 @@ public class NativeTestApi {
     }
 
 
-    @CEnum("dxf_event_types")
+    @CEnum("dxf_market_events_t")
     enum EventsTypes {
-        dxf_event_type_quote,
-        dxf_event_type_time_and_sale;
+        DXF_MARKET_EVENTS_QUOTE,
+        DXF_MARKET_EVENTS_TIME_AND_SALE;
 
         @CEnumValue
         public native int getCValue();
@@ -48,7 +48,7 @@ public class NativeTestApi {
     /**
      * Base type of all events.
      */
-    @CStruct("dxf_event")
+    @CStruct("dxf_event_t")
     interface EventNative extends PointerBase {
         @CField("event_type")
         int getEventType();
@@ -84,7 +84,7 @@ public class NativeTestApi {
     /**
      * The Quote.
      */
-    @CStruct("dxf_event_quote")
+    @CStruct("dxf_event_quote_t")
     interface QuoteNative extends EventNative {
         @CField("bid_price")
         double getBidPrice();
@@ -102,7 +102,7 @@ public class NativeTestApi {
     /**
      * The TimeAndSale.
      */
-    @CStruct("dxf_event_time_and_sale")
+    @CStruct("dxf_event_time_and_sale_t")
     interface TimeAndSaleNative extends EventNative {
         @CField("event_flag")
         int getEventFlag();
@@ -129,17 +129,17 @@ public class NativeTestApi {
 
         // Allocates Quote events.
         var quote = (QuoteNative) UnmanagedMemory.calloc(SizeOf.get(QuoteNative.class));
-        quote.setEventType(EventsTypes.dxf_event_type_quote.getCValue());
+        quote.setEventType(EventsTypes.DXF_MARKET_EVENTS_QUOTE.getCValue());
         quote.setSymbolName(allocCString("😁"));
-        quote.setAskPrice(555);
-        quote.setBidPrice(666);
+        quote.setAskPrice(1);
+        quote.setBidPrice(2);
 
         // Allocates Quote events.
         var tns = (TimeAndSaleNative) UnmanagedMemory.calloc(SizeOf.get(TimeAndSaleNative.class));
-        tns.setEventType(EventsTypes.dxf_event_type_time_and_sale.getCValue());
-        tns.setSymbolName(allocCString("ЁЙЪЬ"));
-        tns.setEventFlag(123);
-        tns.setIndex(456);
+        tns.setEventType(EventsTypes.DXF_MARKET_EVENTS_TIME_AND_SALE.getCValue());
+        tns.setSymbolName(allocCString("ETH/USD:GDAX"));
+        tns.setEventFlag(3);
+        tns.setIndex(4);
 
         // Writes event pointers to array of pointers.
         events.addressOf(0).write(quote);
